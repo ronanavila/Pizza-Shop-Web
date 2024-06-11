@@ -25,7 +25,7 @@ import { Textarea } from "./ui/textarea";
 
 const storedProfileSchema = z.object({
   name: z.string().min(1),
-  description: z.string(),
+  description: z.string().nullable(),
 });
 
 type StoredProfileSchema = z.infer<typeof storedProfileSchema>;
@@ -38,21 +38,36 @@ export function StoreProfileDialog() {
     staleTime: Infinity,
   });
 
+  function updateManagedRestaurantCache({
+    name,
+    description,
+  }: StoredProfileSchema) {
+    const cached = queryClient.getQueryData<GetManagedRestaurantResponse>([
+      "managed-restaurant",
+    ]);
+    if (cached) {
+      queryClient.setQueryData<GetManagedRestaurantResponse>(
+        ["managed-restaurant"],
+        {
+          ...cached,
+          name,
+          description,
+        },
+      );
+    }
+    return { cached };
+  }
+
   const { mutateAsync: updateProfileFn } = useMutation({
     mutationFn: updateProfile,
-    onSuccess(_, { name, description }) {
-      const cached = queryClient.getQueryData<GetManagedRestaurantResponse>([
-        "managed-restaurant",
-      ]);
-      if (cached) {
-        queryClient.setQueryData<GetManagedRestaurantResponse>(
-          ["managed-restaurant"],
-          {
-            ...cached,
-            name,
-            description,
-          },
-        );
+    onMutate({ name, description }) {
+      const { cached } = updateManagedRestaurantCache({ name, description });
+
+      return { previousProfile: cached };
+    },
+    onError(_, __, context) {
+      if (context?.previousProfile) {
+        updateManagedRestaurantCache(context.previousProfile);
       }
     },
   });
