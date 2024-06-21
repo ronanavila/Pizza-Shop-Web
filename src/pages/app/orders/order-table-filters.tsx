@@ -131,7 +131,7 @@ export function OrderTableFilters() {
         size="xs"
       >
         <X className="mr-2 h-4 w-4" />
-        Filtrar resultados
+        Limpar filtros
       </Button>
     </form>
   );
