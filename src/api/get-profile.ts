@@ -5,7 +5,7 @@ export interface GetProfileResponse {
   name: string;
   email: string;
   phone: string;
-  role: "manage" | "customer";
+  role: "manager" | "customer";
   createdAt: Date | null;
   updatedAt: Date | null;
 }
